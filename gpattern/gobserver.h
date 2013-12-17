@@ -27,7 +27,8 @@
 #error "Only <gpattern/gpattern.h> can be included directly"
 #endif
 
-#include <gobject/gobject.h>
+#include <glib-object.h>
+#include <gpattern/gpatterntypes.h>
 
 G_BEGIN_DECLS
 
@@ -43,23 +44,17 @@ struct _GObserverInterface
   GTypeInterface g_iface;
 
   /* virtual functions */
-  void on_next      (GObserver *observer, GVariant *value);
-  void on_error     (GObserver *observer, GError *error);
-  void on_completed (GObserver *observer);
+  void (* on_next)      (GObserver *observer, GVariant *value);
+  void (* on_error)     (GObserver *observer, GError *error);
+  void (* on_completed) (GObserver *observer);
 
   /* signals */
 };
 
-GLIB_AVAILABLE_IN_2_39
 GType g_observer_get_type (void) G_GNUC_CONST;
 
-GLIB_AVAILABLE_IN_2_39
 void g_observer_on_next (GObserver *observer, GVariant *value);
-
-GLIB_AVAILABLE_IN_2_39
 void g_observer_on_error (GObserver *observer, GError *error);
-
-GLIB_AVAILABLE_IN_2_39
 void g_observer_on_completed (GObserver *observer);
 
 G_END_DECLS

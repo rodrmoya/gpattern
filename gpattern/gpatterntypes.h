@@ -31,6 +31,9 @@
 
 G_BEGIN_DECLS
 
+typedef struct _GObserver   GObserver;
+typedef struct _GObservable GObservable;
+
 G_END_DECLS
 
 #endif /* __GPATTERN_TYPES_H__ */

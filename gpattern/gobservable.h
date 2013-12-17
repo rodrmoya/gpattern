@@ -48,10 +48,8 @@ struct _GObservableInterface
   /* signals */
 };
 
-GLIB_AVAILABLE_IN_2_39
 GType g_observable_get_type (void) G_GNUC_CONST;
 
-GLIB_AVAILABLE_IN_2_39
 void g_observable_subscribe (GObservable *observable, GObserver *observer);
 
 
