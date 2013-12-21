@@ -10,7 +10,8 @@ lib_LTLIBRARIES = libgpattern-2.0.la
 
 libgpattern_2_0_la_SOURCES =		\
 	gobserver.c			\
-	gobservable.c
+	gobservable.c			\
+	greactivesubject.c
 
 libgpattern_2_0_la_LIBADD =		\
 	$(GPATTERN_LIBS)
@@ -20,4 +21,5 @@ gpatterninclude_HEADERS =		\
 	gobserver.h		\
 	gobservable.h		\
 	gpattern.h		\
-	gpatterntypes.h
+	gpatterntypes.h		\
+	greactivesubject.h

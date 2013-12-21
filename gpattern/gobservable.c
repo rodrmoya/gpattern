@@ -48,6 +48,7 @@ static void
 g_observable_default_init (GObservableInterface *iface)
 {
   iface->subscribe = NULL;
+  iface->unsubscribe = NULL;
 }
 
 /**
@@ -68,5 +69,26 @@ g_observable_subscribe (GObservable *observable, GObserver *observer)
   if (G_OBSERVABLE_GET_IFACE (observable)->subscribe != NULL)
     {
       G_OBSERVABLE_GET_IFACE (observable)->subscribe (observable, observer);
+    }
+}
+
+/**
+ * g_observable_unsubscribe:
+ * @observable: a #GObservable
+ * @observer: a #GObserver
+ *
+ * Unsubscribes the given #GObserver so that it stops getting notification
+ * of changes from  @observable.
+ *
+ * Since: 2.39
+ */
+void
+g_observable_unsubscribe (GObservable *observable, GObserver *observer)
+{
+  g_return_if_fail (G_IS_OBSERVABLE (observable));
+
+  if (G_OBSERVABLE_GET_IFACE (observable)->unsubscribe != NULL)
+    {
+      G_OBSERVABLE_GET_IFACE (observable)->unsubscribe (observable, observer);
     }
 }

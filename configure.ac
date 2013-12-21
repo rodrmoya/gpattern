@@ -49,6 +49,7 @@ PKG_CHECK_MODULES(GPATTERN,
 AC_CONFIG_FILES([
 Makefile
 gpattern/Makefile
+tests/Makefile
 po/Makefile.in
 ])
 

@@ -29,6 +29,7 @@
 
 #include <gpattern/gobservable.h>
 #include <gpattern/gobserver.h>
+#include <gpattern/greactivesubject.h>
 
 #undef __GPATTERN_GPATTERN_H_INSIDE__
 

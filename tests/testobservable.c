@@ -20,21 +20,19 @@
  * Author: Rodrigo Moya <rodrigo@gnome.org>
  */
 
-#ifndef __GPATTERN_TYPES_H__
-#define __GPATTERN_TYPES_H__
+#include "gpattern/gpattern.h"
 
-#if !defined(__GPATTERN_GPATTERN_H_INSIDE__) && !defined(GPATTERN_COMPILATION)
-#error "Only <gpattern/gpattern.h> can be included directly"
-#endif
+static void
+test_observable (void)
+{
+}
 
-#include <glib-object.h>
+int
+main (int argc, char *argv[])
+{
+  g_test_init (&argc, &argv, NULL);
 
-G_BEGIN_DECLS
+  g_test_add_func ("/testgpattern/Observable", test_observable);
 
-typedef struct _GObserver        GObserver;
-typedef struct _GObservable      GObservable;
-typedef struct _GReactiveSubject GReactiveSubject;
-
-G_END_DECLS
-
-#endif /* __GPATTERN_TYPES_H__ */
+  return g_test_run ();
+}

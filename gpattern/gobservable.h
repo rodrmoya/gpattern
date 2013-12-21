@@ -43,14 +43,16 @@ struct _GObservableInterface
   GTypeInterface g_iface;
 
   /* virtual functions */
-  void (* subscribe) (GObservable *observable, GObserver *observer);
+  void (* subscribe)   (GObservable *observable, GObserver *observer);
+  void  (* unsubscribe) (GObservable *observable, GObserver *observer);
 
   /* signals */
 };
 
-GType g_observable_get_type (void) G_GNUC_CONST;
+GType g_observable_get_type   (void) G_GNUC_CONST;
 
-void g_observable_subscribe (GObservable *observable, GObserver *observer);
+void g_observable_subscribe   (GObservable *observable, GObserver *observer);
+void g_observable_unsubscribe (GObservable *observable, GObserver *observer);
 
 
 G_END_DECLS
