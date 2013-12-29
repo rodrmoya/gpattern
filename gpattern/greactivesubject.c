@@ -39,6 +39,7 @@ static void g_reactive_subject_observer_iface_init (GObserverInterface *iface);
 struct _GReactiveSubjectPrivate
 {
   GList *items;
+  GHashTable *observers;
   gboolean completed;
 };
 
@@ -51,11 +52,27 @@ G_DEFINE_TYPE_WITH_CODE (GReactiveSubject, g_reactive_subject, G_TYPE_OBJECT,
 static void
 g_reactive_subject_subscribe (GObservable *observable, GObserver *observer)
 {
+  GReactiveSubject *subject = G_REACTIVE_SUBJECT (observable);
+
+  g_return_if_fail (G_IS_REACTIVE_SUBJECT (observable));
+  g_return_if_fail (G_IS_OBSERVER (observer));
+  
+  /* Check if this observer is already subscribed */
+  if (!g_hash_table_lookup (subject->priv->observers, observer))
+    {
+      g_hash_table_insert (subject->priv->observers, observer, observer);
+    }
 }
 
 static void
 g_reactive_subject_unsubscribe (GObservable *observable, GObserver *observer)
 {
+  GReactiveSubject *subject = G_REACTIVE_SUBJECT (observable);
+  
+  g_return_if_fail (G_IS_REACTIVE_SUBJECT (observable));
+  g_return_if_fail (G_IS_OBSERVER (observer));
+  
+  g_hash_table_remove (subject->priv->observers, observer);
 }
 
 static void
@@ -103,6 +120,11 @@ g_reactive_subject_finalize (GObject *object)
           subject->priv->items = g_list_remove (subject->priv->items, value);
           g_variant_unref (value);
         }
+
+      if (subject->priv->observers != NULL)
+        {
+          g_clear_pointer (&subject->priv->observers, g_hash_table_unref);
+        }
     }
 
   G_OBJECT_CLASS (g_reactive_subject_parent_class)->finalize (object);
@@ -122,6 +144,7 @@ g_reactive_subject_init (GReactiveSubject *subject)
   subject->priv = g_reactive_subject_get_instance_private (subject);
 
   subject->priv->items = NULL;
+  subject->priv->observers = g_hash_table_new (g_direct_hash, g_direct_equal);
   subject->priv->completed = FALSE;
 }
 
