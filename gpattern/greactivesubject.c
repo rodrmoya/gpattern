@@ -45,8 +45,10 @@ struct _GReactiveSubjectPrivate
 
 G_DEFINE_TYPE_WITH_CODE (GReactiveSubject, g_reactive_subject, G_TYPE_OBJECT,
                          G_ADD_PRIVATE (GReactiveSubject)
-                         G_IMPLEMENT_INTERFACE (G_TYPE_OBSERVABLE, g_reactive_subject_observable_iface_init)
-                         G_IMPLEMENT_INTERFACE (G_TYPE_OBSERVER, g_reactive_subject_observer_iface_init))
+                         G_IMPLEMENT_INTERFACE (G_TYPE_OBSERVABLE,
+                                                g_reactive_subject_observable_iface_init)
+                         G_IMPLEMENT_INTERFACE (G_TYPE_OBSERVER,
+                                                g_reactive_subject_observer_iface_init))
 
 /* GObservable interface implementation */
 static void
@@ -71,7 +73,7 @@ g_reactive_subject_unsubscribe (GObservable *observable, GObserver *observer)
   
   g_return_if_fail (G_IS_REACTIVE_SUBJECT (observable));
   g_return_if_fail (G_IS_OBSERVER (observer));
-  
+
   g_hash_table_remove (subject->priv->observers, observer);
 }
 
@@ -86,16 +88,56 @@ g_reactive_subject_observable_iface_init (GObservableInterface *iface)
 static void
 g_reactive_subject_on_next (GObserver *observer, GVariant *value)
 {
+  GReactiveSubject *subject = G_REACTIVE_SUBJECT (observer);
+
+  g_return_if_fail (G_IS_REACTIVE_SUBJECT (observer));
+  g_return_if_fail (!subject->priv->completed);
+
+  /* Store this item in our list of items */
+  subject->priv->items = g_list_append (subject->priv->items, g_variant_ref (value));
+
+  /* Notify observers */
+  g_hash_table_iter_init (&iter, subject->priv->observers);
+  while (g_hash_table_iter_next (&iter, &key, &value))
+    {
+      g_observer_on_next (G_OBSERVER (key), value);
+    }
 }
 
 static void
 g_reactive_subject_on_error (GObserver *observer, GError *error)
 {
+  GReactiveSubject *subject = G_REACTIVE_SUBJECT (observer);
+
+  g_return_if_fail (G_IS_REACTIVE_SUBJECT (observer));
+  g_return_if_fail (!subject->priv->completed);
+
+  subject->priv->completed = TRUE;
+
+  g_hash_table_iter_init (&iter, subject->priv->observers);
+  while (g_hash_table_iter_next (&iter, &key, &value))
+    {
+      g_observer_on_error (G_OBSERVER (key), error);
+    }
 }
 
 static void
 g_reactive_subject_on_completed (GObserver *observer)
 {
+  GHashTableIter iter;
+  gpointer key, value;
+  GReactiveSubject *subject = G_REACTIVE_SUBJECT (observer);
+
+  g_return_if_fail (G_IS_REACTIVE_SUBJECT (observer));
+  g_return_if_fail (!subject->priv->completed);
+
+  subject->priv->completed = TRUE;
+
+  g_hash_table_iter_init (&iter, subject->priv->observers);
+  while (g_hash_table_iter_next (&iter, &key, &value))
+    {
+      g_observer_on_completed (G_OBSERVER (key));
+    }
 }
 
 static void
@@ -113,6 +155,11 @@ g_reactive_subject_finalize (GObject *object)
 
   if (subject->priv)
     {
+      if (!subject->priv->completed)
+        {
+          g_reactive_object_on_completed (G_OBSERVER (subject));
+        }
+
       while (subject->priv->items != NULL)
         {
           GVariant *value = (GVariant *) subject->priv->items->data;
