@@ -31,6 +31,35 @@
  * @title: GReactiveSubject
  * @short_description: Represents an object that is both an observable
  * sequence as well as an observer.
+ *
+ * GReactiveSubject represents an object that is both an observable as
+ * well as an observer. This is due to the fact that implementing a
+ * #GObservable involves adding data, setting errors and notifying
+ * observers when the sequence of data is finished, which is very similar
+ * to the #GObserver interface's on_next, on_error and on_completed methods.
+ * #GReactiveSubject is thus used for easily creating objects that
+ * implement the #GObservable interface.
+ *
+ * By default (when using #g_reactive_subject_new for creating the
+ * #GReactiveSubject instance), it will store all data added to it for its
+ * full lifecycle, and only notify observers of data added after they have
+ * subscribed.
+ *
+ * This default behavior can be changed with the following object properties
+ * (all of which can be set at creation time by using #g_reactive_subject_new_full
+ * instead of #g_reactive_subject_new):
+ *
+ * "cache-size": this specifies the number of data items to keep. As data
+ * is added to the sequence, older items will be removed if the cache
+ * size is exceeded.
+ *
+ * "replay": when set to TRUE, observers will get older data (data that
+ * was added to the sequence before an observer subscribed to it) as soon
+ * as they subscribe to the sequence.
+ *
+ * "async": when set to true, data added to the sequence will be sent to
+ * the observers only before the sequence is about to be completed, not
+ * when the data is being added.
  */
 
 static void g_reactive_subject_observable_iface_init (GObservableInterface *iface);
