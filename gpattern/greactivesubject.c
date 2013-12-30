@@ -41,6 +41,7 @@ struct _GReactiveSubjectPrivate
   GList *items;
   GHashTable *observers;
   gboolean replay;
+  gboolean async;
   guint cache_size;
   gboolean completed;
 };
@@ -55,6 +56,7 @@ G_DEFINE_TYPE_WITH_CODE (GReactiveSubject, g_reactive_subject, G_TYPE_OBJECT,
 enum {
   PROP_0,
   PROP_REPLAY,
+  PROP_ASYNC,
   PROP_CACHE_SIZE,
   N_PROPERTIES
 };
@@ -69,7 +71,7 @@ g_reactive_subject_subscribe (GObservable *observable, GObserver *observer)
 
   g_return_if_fail (G_IS_REACTIVE_SUBJECT (observable));
   g_return_if_fail (G_IS_OBSERVER (observer));
-  
+
   /* Check if this observer is already subscribed */
   if (!g_hash_table_lookup (subject->priv->observers, observer))
     {
@@ -131,10 +133,13 @@ g_reactive_subject_on_next (GObserver *observer, GVariant *value)
   subject->priv->items = g_list_append (subject->priv->items, g_variant_ref (value));
 
   /* Notify observers */
-  g_hash_table_iter_init (&iter, subject->priv->observers);
-  while (g_hash_table_iter_next (&iter, &key, &value))
+  if (!subject->priv->async)
     {
-      g_observer_on_next (G_OBSERVER (key), value);
+      g_hash_table_iter_init (&iter, subject->priv->observers);
+      while (g_hash_table_iter_next (&iter, &key, &value))
+        {
+          g_observer_on_next (G_OBSERVER (key), value);
+        }
     }
 }
 
@@ -170,6 +175,17 @@ g_reactive_subject_on_completed (GObserver *observer)
   g_hash_table_iter_init (&iter, subject->priv->observers);
   while (g_hash_table_iter_next (&iter, &key, &value))
     {
+      if (subject->priv->async)
+        {
+          GList *l;
+
+          /* if in async mode, send data just before completing */
+          for (l = subject->priv->items; l != NULL; l = l->next)
+            {
+              g_observer_on_next (G_OBSERVER (key), l->data);
+            }
+        }
+
       g_observer_on_completed (G_OBSERVER (key));
     }
 }
@@ -195,6 +211,9 @@ g_reactive_subject_get_property (GObject *object,
     case PROP_REPLAY:
       g_value_set_boolean (value, subject->priv->replay);
       break;
+    case PROP_ASYNC:
+      g_value_set_boolean (value, subject->priv->async);
+      break;
     case PROP_CACHE_SIZE:
       g_value_set_uint (value, subject->priv->cache_size);
       break;
@@ -216,6 +235,9 @@ g_reactive_subject_set_property (GObject *object,
     {
     case PROP_REPLAY:
       subject->priv->replay = g_value_get_boolean (value);
+      break;
+    case PROP_REPLAY:
+      subject->priv->async = g_value_get_boolean (value);
       break;
     case PROP_CACHE_SIZE:
       subject->priv->cache_size = g_value_get_uint (value);
@@ -270,6 +292,12 @@ g_reactive_subject_class_init (GReactiveSubjectClass *klass)
                        "Whether to replay all data to new subscribers",
                        FALSE  /* default value */,
                        G_PARAM_READWRITE);
+  obj_properties[PROP_ASYNC] =
+    g_param_spec_bool ("async",
+                       "Async mode",
+                       "Whether to work in async mode (and send data to observers just before completing)",
+                       FALSE  /* default value */,
+                       G_PARAM_READWRITE);
   obj_properties[PROP_CACHE_SIZE] =
     g_param_spec_uint ("cache-size",
                        "Cache size",
@@ -288,6 +316,7 @@ g_reactive_subject_init (GReactiveSubject *subject)
   subject->priv->items = NULL;
   subject->priv->observers = g_hash_table_new (g_direct_hash, g_direct_equal);
   subject->priv->replay = FALSE;
+  subject->priv->async = FALSE;
   subject->priv->cache_size = 0;
   subject->priv->completed = FALSE;
 }
@@ -310,6 +339,8 @@ g_reactive_subject_new (void)
 /**
  * g_reactive_subject_new_full:
  * @replay: whether cached data should be sent to observers when they subscribe.
+ * @async: whether to work on async mode and just send data to observers when
+ * completing the sequence
  * @cache_size: number of items to cache (0 means keep all)
  *
  * Creates a new #GReactiveObject with the possibility of setting a different value
@@ -319,10 +350,12 @@ g_reactive_subject_new (void)
  */
 GReactiveSubject *
 g_reactive_subject_new_full (gboolean replay,
+                             gboolean async,
                              guint cache_size)
 {
   return g_object_new (G_TYPE_REACTIVE_SUBJECT,
                        "replay", replay,
+                       "async", async,
                        "cache-size", cache_size,
                        NULL)
 }
