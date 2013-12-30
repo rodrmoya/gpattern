@@ -62,7 +62,8 @@ struct _GReactiveSubjectClass
 GType             g_reactive_subject_get_type (void) G_GNUC_CONST;
 
 GReactiveSubject *g_reactive_subject_new      (void);
-GReactiveSubject *g_reactive_subject_new_full (gboolean replay);
+GReactiveSubject *g_reactive_subject_new_full (gboolean replay,
+                                               guint cache_size);
 
 G_END_DECLS
 
