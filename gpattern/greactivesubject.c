@@ -38,7 +38,7 @@
  * observers when the sequence of data is finished, which is very similar
  * to the #GObserver interface's on_next, on_error and on_completed methods.
  * #GReactiveSubject is thus used for easily creating objects that
- * implement the #GObservable interface.
+ * implement the #GObservable interface and adding data to them.
  *
  * By default (when using #g_reactive_subject_new for creating the
  * #GReactiveSubject instance), it will store all data added to it for its
@@ -114,6 +114,12 @@ g_reactive_subject_subscribe (GObservable *observable, GObserver *observer)
           for (l = subject->priv->items; l != NULL; l = l->next)
             {
               g_observer_on_next (observer, l->data);
+            }
+
+          /* If completed, notify so to the new observer */
+          if (subject->priv->completed)
+            {
+              g_observer_on_completed (observer);
             }
         }
     }
