@@ -40,6 +40,7 @@ struct _GReactiveSubjectPrivate
 {
   GList *items;
   GHashTable *observers;
+  gboolean replay;
   gboolean completed;
 };
 
@@ -49,6 +50,14 @@ G_DEFINE_TYPE_WITH_CODE (GReactiveSubject, g_reactive_subject, G_TYPE_OBJECT,
                                                 g_reactive_subject_observable_iface_init)
                          G_IMPLEMENT_INTERFACE (G_TYPE_OBSERVER,
                                                 g_reactive_subject_observer_iface_init))
+
+enum {
+  PROP_0,
+  PROP_REPLAY,
+  N_PROPERTIES
+};
+
+static GParamSpec *obj_properties[N_PROPERTIES] = { NULL, };
 
 /* GObservable interface implementation */
 static void
@@ -63,6 +72,17 @@ g_reactive_subject_subscribe (GObservable *observable, GObserver *observer)
   if (!g_hash_table_lookup (subject->priv->observers, observer))
     {
       g_hash_table_insert (subject->priv->observers, observer, observer);
+
+      /* if set to replay, send all cached data to this new observer */
+      if (subject->priv->replay)
+        {
+          GList *l;
+
+          for (l = subject->priv->items; l != NULL; l = l->next)
+            {
+              g_observer_on_next (observer, l->data);
+            }
+        }
     }
 }
 
@@ -149,6 +169,44 @@ g_reactive_subject_observer_iface_init (GObserverInterface *iface)
 }
 
 static void
+g_reactive_subject_get_property (GObject *object,
+                                 guint property_id,
+                                 GValue *value,
+                                 GParamSpec *pspec)
+{
+  GReactiveSubject *subject = G_REACTIVE_SUBJECT (object);
+
+  switch (property_id)
+    {
+    case PROP_REPLAY:
+      g_value_set_boolean (value, subject->priv->replay);
+      break;
+    default:
+      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
+      break;
+    }
+}
+
+static void
+g_reactive_subject_set_property (GObject *object,
+                                 guint property_id,
+                                 const GValue *value,
+                                 GParamSpec *pspec)
+{
+  GReactiveSubject *subject = G_REACTIVE_SUBJECT (object);
+  
+  switch (property_id)
+    {
+    case PROP_REPLAY:
+      subject->priv->replay = g_value_get_boolean (value);
+      break;
+    default:
+      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
+      break;
+    }
+}
+
+static void
 g_reactive_subject_finalize (GObject *object)
 {
   GReactiveSubject *subject = G_REACTIVE_SUBJECT (object);
@@ -182,7 +240,16 @@ g_reactive_subject_class_init (GReactiveSubjectClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
 
+  object_class->get_property = g_reactive_subject_get_property;
+  object_class->set_property = g_reactive_subject_set_property;
   object_class->finalize = g_reactive_subject_finalize;
+  
+  obj_properties[PROP_REPLAY] =
+    g_param_spec_bool ("replay",
+                       "Whether to replay all data to new subscribers",
+                       "Whether to replay all data to new subscribers",
+                       FALSE  /* default value */,
+                       G_PARAM_READWRITE);
 }
 
 static void
@@ -192,6 +259,7 @@ g_reactive_subject_init (GReactiveSubject *subject)
 
   subject->priv->items = NULL;
   subject->priv->observers = g_hash_table_new (g_direct_hash, g_direct_equal);
+  subject->priv->replay = FALSE;
   subject->priv->completed = FALSE;
 }
 
@@ -208,4 +276,21 @@ GReactiveSubject *
 g_reactive_subject_new (void)
 {
   return g_object_new (G_TYPE_REACTIVE_SUBJECT, NULL);
+}
+
+/**
+ * g_reactive_subject_new_full:
+ * @replay: whether cached data should be sent to observers when they subscribe.
+ *
+ * Creates a new #GReactiveObject with the possibility of setting a different value
+ * than the default for all the object's properties that affect its behavior.
+ *
+ * Return value: a new #GReactiveSubject
+ */
+GReactiveSubject *
+g_reactive_subject_new_full (gboolean replay)
+{
+  return g_object_new (G_TYPE_REACTIVE_SUBJECT,
+                       "replay", replay,
+                       NULL)
 }
