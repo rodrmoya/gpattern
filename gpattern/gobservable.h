@@ -44,7 +44,7 @@ struct _GObservableInterface
 
   /* virtual functions */
   void (* subscribe)   (GObservable *observable, GObserver *observer);
-  void  (* unsubscribe) (GObservable *observable, GObserver *observer);
+  void (* unsubscribe) (GObservable *observable, GObserver *observer);
 
   /* signals */
 };

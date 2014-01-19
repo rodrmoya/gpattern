@@ -66,6 +66,10 @@ GReactiveSubject *g_reactive_subject_new_full (gboolean replay,
                                                gboolean async,
                                                guint cache_size);
 
+/* GReactiveSubject factory */
+GReactiveSubject *g_reactive_subject_new_for_property (GObject object,
+                                                       const gchar *property_name);
+
 G_END_DECLS
 
 #endif

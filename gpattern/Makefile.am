@@ -11,7 +11,8 @@ lib_LTLIBRARIES = libgpattern-2.0.la
 libgpattern_2_0_la_SOURCES =		\
 	gobserver.c			\
 	gobservable.c			\
-	greactivesubject.c
+	greactivesubject.c		\
+	gpropertyreactivesubject.c
 
 libgpattern_2_0_la_LIBADD =		\
 	$(GPATTERN_LIBS)
