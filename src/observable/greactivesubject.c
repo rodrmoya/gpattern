@@ -170,6 +170,9 @@ g_reactive_subject_on_next (GObserver *observer, GVariant *value)
   /* Notify observers */
   if (!subject->priv->async)
     {
+      GHashTableIter iter;
+      gpointer key, value;
+
       g_hash_table_iter_init (&iter, subject->priv->observers);
       while (g_hash_table_iter_next (&iter, &key, &value))
         {
@@ -181,6 +184,8 @@ g_reactive_subject_on_next (GObserver *observer, GVariant *value)
 static void
 g_reactive_subject_on_error (GObserver *observer, GError *error)
 {
+  GHashTableIter iter;
+  gpointer key, value;
   GReactiveSubject *subject = G_REACTIVE_SUBJECT (observer);
 
   g_return_if_fail (G_IS_REACTIVE_SUBJECT (observer));
@@ -271,7 +276,7 @@ g_reactive_subject_set_property (GObject *object,
     case PROP_REPLAY:
       subject->priv->replay = g_value_get_boolean (value);
       break;
-    case PROP_REPLAY:
+    case PROP_ASYNC:
       subject->priv->async = g_value_get_boolean (value);
       break;
     case PROP_CACHE_SIZE:
@@ -392,5 +397,5 @@ g_reactive_subject_new_full (gboolean replay,
                        "replay", replay,
                        "async", async,
                        "cache-size", cache_size,
-                       NULL)
+                       NULL);
 }

@@ -23,11 +23,7 @@
 #ifndef __G_REACTIVE_SUBJECT_H__
 #define __G_REACTIVE_SUBJECT_H__
 
-#if !defined(__GPATTERN_GPATTERN_H_INSIDE__) && !defined(GPATTERN_COMPILATION)
-#error "Only <gpattern/gpattern.h> can be included directly"
-#endif
-
-#include <gpattern/gpatterntypes.h>
+#include <glib-object.h>
 
 G_BEGIN_DECLS
 
@@ -38,6 +34,7 @@ G_BEGIN_DECLS
 #define G_IS_REACTIVE_SUBJECT_CLASS(k)  (G_TYPE_CHECK_CLASS_TYPE ((k), G_TYPE_REACTIVE_SUBJECT))
 #define G_REACTIVE_SUBJECT_GET_CLASS(o) (G_TYPE_INSTANCE_GET_CLASS ((o), G_TYPE_REACTIVE_SUBJECT, GReactiveSubjectClass))
 
+typedef struct _GReactiveSubject        GReactiveSubject;
 typedef struct _GReactiveSubjectClass   GReactiveSubjectClass;
 typedef struct _GReactiveSubjectPrivate GReactiveSubjectPrivate;
 

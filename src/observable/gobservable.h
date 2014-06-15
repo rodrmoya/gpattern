@@ -23,11 +23,7 @@
 #ifndef __G_OBSERVABLE_H__
 #define __G_OBSERVABLE_H__
 
-#if !defined(__GPATTERN_GPATTERN_H_INSIDE__) && !defined(GPATTERN_COMPILATION)
-#error "Only <gpattern/gpattern.h> can be included directly"
-#endif
-
-#include <gpattern/gobserver.h>
+#include "gobserver.h"
 
 G_BEGIN_DECLS
 
@@ -36,6 +32,7 @@ G_BEGIN_DECLS
 #define G_IS_OBSERVABLE(inst)        (G_TYPE_CHECK_INSTANCE_TYPE ((inst), G_TYPE_OBSERVABLE))
 #define G_OBSERVABLE_GET_IFACE(inst) (G_TYPE_INSTANCE_GET_INTERFACE ((inst), G_TYPE_OBSERVABLE, GObservableInterface))
 
+typedef struct _GObservable          GObservable;
 typedef struct _GObservableInterface GObservableInterface;
 
 struct _GObservableInterface
