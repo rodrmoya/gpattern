@@ -1,1 +1,1 @@
-SUBDIRS = gpattern tests
+SUBDIRS = src tests

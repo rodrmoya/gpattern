@@ -1,1 +1,3 @@
-SUBDIRS = document-application
+SUBDIRS =			\
+	document-application	\
+	observable

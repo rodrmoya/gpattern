@@ -3,7 +3,7 @@ AC_PREREQ(2.63)
 AC_INIT([gpattern],[0.1.0],[],[gpattern])
 
 AC_CONFIG_HEADERS([config/config.h])
-AC_CONFIG_SRCDIR([gpattern/gpattern.h])
+AC_CONFIG_SRCDIR([src/observable/gobservable.h])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_AUX_DIR([config])
 
@@ -44,12 +44,14 @@ GETTING_STARTED_INIT
 
 PKG_CHECK_MODULES(GPATTERN,
                   glib-2.0 >= 2.37.0
+		  gtk+-3.0
                   gobject-2.0)
 
 AC_CONFIG_FILES([
 Makefile
 src/Makefile
 src/document-application/Makefile
+src/observable/Makefile
 tests/Makefile
 po/Makefile.in
 ])

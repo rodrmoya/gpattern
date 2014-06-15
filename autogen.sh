@@ -6,7 +6,7 @@ test -z "$srcdir" && srcdir=.
 
 PKG_NAME="gpattern"
 
-(test -f $srcdir/gpattern/gpattern.h) || {
+(test -f $srcdir/src/observable/gobservable.h) || {
     echo -n "**Error**: Directory "\`$srcdir\'" does not look like the"
     echo " top-level $PKG_NAME directory"
     exit 1

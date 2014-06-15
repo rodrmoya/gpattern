@@ -18,12 +18,13 @@
  */
 
 #include "config.h"
-
 #include "gtkdocumentapplication.h"
+#include <glib/gi18n.h>
 
 enum {
   PROP_ZERO,
-  PROP_WINDOW_TYPE
+  PROP_VIEW_TYPE,
+  PROP_USE_TABS
 };
 
 /**
@@ -38,10 +39,11 @@ enum {
 
 struct _GtkDocumentApplicationPrivate
 {
-  GType window_type;
+  GType view_type;
+  gboolean use_tabs;
 };
 
-G_DEFINE_TYPE_WITH_PRIVATE (GtkDocumentApplication, gtk_document_application, GTK_TYPE_APPLICATION)
+G_DEFINE_TYPE_WITH_PRIVATE (GtkDocumentApplication, gtk_document_application, GTK_TYPE_APPLICATION);
 
 static void
 gtk_document_application_init (GtkDocumentApplication *application)
@@ -59,8 +61,11 @@ gtk_document_application_get_property (GObject    *object,
 
   switch (prop_id)
     {
-    PROP_WINDOW_TYPE:
-      g_value_set_type (value, application->priv->window_type);
+    case PROP_VIEW_TYPE:
+      g_value_set_gtype (value, application->priv->view_type);
+      break;
+    case PROP_USE_TABS:
+      g_value_set_bool (value, application->priv->use_tabs);
       break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -78,8 +83,11 @@ gtk_document_application_set_property (GObject      *object,
 
   switch (prop_id)
     {
-    case PROP_WINDOW_TYPE:
-      application->priv->window_type = g_value_get_type (value);
+    case PROP_VIEW_TYPE:
+      application->priv->view_type = g_value_get_gtype (value);
+      break;
+    case PROP_USE_TABS:
+      application->priv->use_tabs = g_value_get_bool (value);
       break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -88,7 +96,7 @@ gtk_document_application_set_property (GObject      *object,
 }
 
 static void
-gtk_document_application_finalize (GObject object)
+gtk_document_application_finalize (GObject *object)
 {
   G_OBJECT_CLASS (gtk_document_application_parent_class)->finalize (object);
 }
@@ -102,11 +110,19 @@ gtk_document_application_class_init (GtkDocumentApplicationClass *klass)
   object_class->set_property = gtk_document_application_set_property;
   object_class->finalize = gtk_document_application_finalize;
 
-  g_object_class_install_property (object_class, PROP_WINDOW_TYPE,
-                                   g_param_spec_type ("window-type",
-                                                      P_("Window type"),
-                                                      P_("GType to use for instantiating windows"),
-                                                      GTK_DOCUMENT_WINDOW, G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+  g_object_class_install_property (object_class, PROP_VIEW_TYPE,
+                                   g_param_spec_gtype ("view-type",
+                                                       "View type",
+                                                       "GType to use for instantiating new documents",
+                                                       GTK_TYPE_WIDGET,
+                                                       G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+
+  g_object_class_install_property (object_class, PROP_USE_TABS,
+                                   g_param_spec_boolean ("use-tabs",
+                                                         "Use tabs",
+                                                         "Whether to use tabs or separate windows for each document",
+                                                         FALSE,
+                                                         G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 }
 
 /**
@@ -115,12 +131,13 @@ gtk_document_application_class_init (GtkDocumentApplicationClass *klass)
 GtkDocumentApplication *
 gtk_document_application_new (const gchar *application_id,
                               GApplicationFlags flags,
-                              GType window_type)
+                              GType view_type)
 {
   return g_object_new (GTK_TYPE_DOCUMENT_APPLICATION,
                        "application-id", application_id,
                        "flags", flags,
-                       "register-session", true,
-                       "window-type", window_type,
+                       "register-session", TRUE,
+                       "view-type", view_type,
+                       "use-tabs", FALSE,
                        NULL);
 }

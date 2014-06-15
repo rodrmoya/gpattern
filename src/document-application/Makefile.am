@@ -1,7 +1,7 @@
 AM_CPPFLAGS =					\
 	$(GPATTERN_CFLAGS)			\
 	-I$(top_srcdir)				\
-	-DG_LOG_DOMAIN=\GtkDocumentApplication\"\
+	-DG_LOG_DOMAIN=\"GtkDocumentApplication\"\
 	-DGPATTERN_COMPILATION
 
 AM_CFLAGS = $(GLIB_WARN_CFLAGS)

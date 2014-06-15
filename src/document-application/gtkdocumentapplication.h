@@ -20,7 +20,7 @@
 #ifndef __GTK_DOCUMENT_APPLICATION_H__
 #define __GTK_DOCUMENT_APPLICATION_H__
 
-#include <gtk/gtkapplication.h>
+#include <gtk/gtk.h>
 
 G_BEGIN_DECLS
 
