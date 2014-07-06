@@ -1,3 +1,5 @@
-SUBDIRS =			\
+SUBDIRS =					\
 	document-application	\
-	observable
+	message-center			\
+	observable				\
+	observable-collection	\

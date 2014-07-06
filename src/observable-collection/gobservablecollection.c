@@ -140,3 +140,28 @@ g_observable_collection_reverse (GObservableCollection *collection)
 
   collection->priv->items = g_slist_reverse (collection->priv->items);
 }
+
+/**
+ * g_observable_collection_item_at:
+ */
+gpointer
+g_observable_collection_item_at   (GObservableCollection *collection, gint position)
+{
+  GSList *sl;
+
+  g_return_val_if_fail (G_IS_OBSERVABLE_COLLECTION (collection), NULL);
+
+  sl = g_slist_nth (collection->priv->items, position);
+  return sl != NULL ? sl->data : NULL;
+}
+
+/**
+ * g_observable_collection_index:
+ */
+gint
+g_observable_collection_index  (GObservableCollection *collection, gpointer item)
+{
+  g_return_val_if_fail (G_IS_OBSERVABLE_COLLECTION (collection), -1);
+
+  return g_slist_index (collection->priv->items, item);
+}

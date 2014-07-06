@@ -70,6 +70,9 @@ void                   g_observable_collection_insert_sorted (GObservableCollect
 void                   g_observable_collection_remove        (GObservableCollection *collection, gpointer item);
 void                   g_observable_collection_reverse       (GObservableCollection *collection);
 
+gpointer               g_observable_collection_item_at       (GObservableCollection *collection, gint position);
+gint                   g_observable_collection_index         (GObservableCollection *collection, gpointer item);
+
 G_END_DECLS
 
 #endif

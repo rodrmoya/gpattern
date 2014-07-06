@@ -52,6 +52,7 @@ Makefile
 src/Makefile
 src/document-application/Makefile
 src/observable/Makefile
+src/observable-collection/Makefile
 tests/Makefile
 po/Makefile.in
 ])
