@@ -23,7 +23,7 @@
 #ifndef __G_MESSAGE_CENTER_H__
 #define __G_MESSAGE_CENTER_H__
 
-#include <glib-object.h>
+#include "gmessage.h"
 
 G_BEGIN_DECLS
 
@@ -57,13 +57,13 @@ struct _GMessageCenterClass
 {
   GObjectClass parent_class;
 
-  void (* message_received) (GMessageCenter message_center, GObject sender, const gchar *message_name);
+  void (* message_received) (GMessageCenter message_center, GMessage *message);
 };
 
 GType           g_message_center_get_type (void) G_GNUC_CONST;
 
 GMessageCenter *g_message_center_get      (void);
-void            g_message_center_send     (GMessageCenter *message_center, GObject sender, const gchar *message_name);
+void            g_message_center_send     (GMessageCenter *message_center, GMessage *message);
 
 G_END_DECLS
 
