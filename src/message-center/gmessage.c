@@ -120,3 +120,25 @@ g_message_set_name (GMessage *message, const gchar *name)
   g_clear_pointer (&message->priv->name, g_free);
   message->priv->name = g_strdup (name);
 }
+
+/**
+ *g_message_get_user_data:
+ */
+gpointer
+g_message_get_user_data (GMessage *message)
+{
+  g_return_val_if_fail (G_IS_MESSAGE (message), NULL);
+
+  return message->priv->user_data;
+}
+
+/**
+ * g_message_set_user_data:
+ */
+void
+g_message_set_user_data (GMessage *message, gpointer user_data)
+{
+  g_return_if_fail (G_IS_MESSAGE (message));
+
+  message->priv->user_data = user_data;
+}

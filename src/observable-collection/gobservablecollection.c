@@ -145,7 +145,7 @@ g_observable_collection_reverse (GObservableCollection *collection)
  * g_observable_collection_item_at:
  */
 gpointer
-g_observable_collection_item_at   (GObservableCollection *collection, gint position)
+g_observable_collection_item_at (GObservableCollection *collection, gint position)
 {
   GSList *sl;
 

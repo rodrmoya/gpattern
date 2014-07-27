@@ -48,14 +48,16 @@ struct _GMessageClass
   GObjectClass parent_class;
 };
 
-GType        g_message_get_type   (void) G_GNUC_CONST;
+GType        g_message_get_type      (void) G_GNUC_CONST;
 
-GMessage    *g_message_new        (GObject sender, const gchar *message_name, gpointer user_data);
+GMessage    *g_message_new           (GObject sender, const gchar *message_name, gpointer user_data);
 
-GObject     *g_message_get_sender (GMessage *message);
-void         g_message_set_sender (GMessage *message, GObject *sender);
-const gchar *g_message_get_name   (GMessage *message);
-void         g_message_set_name   (GMessage *message);
+GObject     *g_message_get_sender    (GMessage *message);
+void         g_message_set_sender    (GMessage *message, GObject *sender);
+const gchar *g_message_get_name      (GMessage *message);
+void         g_message_set_name      (GMessage *message);
+gpointer     g_message_get_user_data (GMessage *message);
+void         g_message_set_user_data (GMessage *message, gpointer user_data);
 
 G_END_DECLS
 
