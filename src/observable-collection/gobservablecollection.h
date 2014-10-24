@@ -34,6 +34,7 @@ G_BEGIN_DECLS
 #define G_IS_OBSERVABLE_COLLECTION_CLASS(k)  (G_TYPE_CHECK_CLASS_TYPE ((k), G_TYPE_OBSERVABLE_COLLECTION))
 #define G_OBSERVABLE_COLLECTION_GET_CLASS(o) (G_TYPE_INSTANCE_GET_CLASS ((o), G_TYPE_OBSERVABLE_COLLECTION, GObservableCollectionClass))
 
+typedef struct _GObservableCollection        GObservableCollection;
 typedef struct _GObservableCollectionClass   GObservableCollectionClass;
 typedef struct _GObservableCollectionPrivate GObservableCollectionPrivate;
 
@@ -55,13 +56,12 @@ struct _GObservableCollectionClass
   GObjectClass parent_class;
 
   void (* item_added)   (GObservableCollection *collection, gpointer item, gint position);
-  void (* item_removed) (GObservableCollection *collection, gint position);
-  void (* item_moved)   (GObservableCollection *collection, gpointer item, gint old_position, gint new_position);
+  void (* item_removed) (GObservableCollection *collection, gpointer item);
 };
 
-GType                  g_observable_collection_get_type (void) G_GNUC_CONST;
+GType                  g_observable_collection_get_type      (void) G_GNUC_CONST;
 
-GObservableCollection *g_observable_collection_new      (void);
+GObservableCollection *g_observable_collection_new           (void);
 
 void                   g_observable_collection_append        (GObservableCollection *collection, gpointer item);
 void                   g_observable_collection_prepend       (GObservableCollection *collection, gpointer item);

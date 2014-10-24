@@ -20,8 +20,6 @@
  * Author: Rodrigo Moya <rodrigo@gnome.org>
  */
 
-#include "config.h"
-
 #include "gobservablecollection.h"
 
 /**
@@ -36,16 +34,24 @@ struct _GObservableCollectionPrivate
   GSList *items;
 };
 
-G_DEFINE_TYPE (GObservableCollection, g_observable_collection, G_TYPE_REACTIVE_SUBJECT)
+G_DEFINE_TYPE (GObservableCollection, g_observable_collection, G_TYPE_OBJECT)
+
+enum {
+  ITEM_ADDED,
+  ITEM_REMOVED,
+  LAST_SIGNAL
+};
+
+static guint signals[LAST_SIGNAL] = { 0 };
 
 static void
 g_observable_collection_finalize (GObject *object)
 {
   GObservableCollection *collection = G_OBSERVABLE_COLLECTION (object);
 
-  if (collection-priv)
+  if (collection->priv)
     {
-      g_list_free (collection->priv->items);
+      g_slist_free (collection->priv->items);
     }
 
   G_OBJECT_CLASS (g_observable_collection_parent_class)->finalize (object);
@@ -57,6 +63,23 @@ g_observable_collection_class_init (GObservableCollectionClass *klass)
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
 
   object_class->finalize = g_observable_collection_finalize;
+
+  signals[ITEM_ADDED] =
+    g_signal_new ("item_added",
+                  G_TYPE_OBSERVABLE_COLLECTION,
+                  G_SIGNAL_RUN_LAST,
+                  G_STRUCT_OFFSET (GObservableCollectionClass, item_added),
+                  NULL, NULL, NULL,
+                  G_TYPE_NONE, 2,
+                  G_TYPE_POINTER, G_TYPE_INT);
+  signals[ITEM_REMOVED] =
+    g_signal_new ("item_removed",
+                  G_TYPE_OBSERVABLE_COLLECTION,
+                  G_SIGNAL_RUN_LAST,
+                  G_STRUCT_OFFSET (GObservableCollectionClass, item_removed),
+                  NULL, NULL, NULL,
+                  G_TYPE_NONE, 1,
+                  G_TYPE_POINTER);
 }
 
 static void
@@ -69,10 +92,10 @@ g_observable_collection_init (GObservableCollection *collection)
 /**
  * g_observable_collection_new:
  */
-GObservableCollection
+GObservableCollection *
 g_observable_collection_new (void)
 {
-  return g_object_new (G_TYPE_OBSERVABLE_COLLECTION, NULL);
+  return (GObservableCollection *) g_object_new (G_TYPE_OBSERVABLE_COLLECTION, NULL);
 }
 
 /**
@@ -84,6 +107,7 @@ g_observable_collection_append (GObservableCollection *collection, gpointer item
   g_return_if_fail (G_IS_OBSERVABLE_COLLECTION (collection));
 
   collection->priv->items = g_slist_append (collection->priv->items, item);
+  g_signal_emit (collection, signals[ITEM_ADDED], 0, item, g_slist_length (collection->priv->items) - 1);
 }
 
 /**
@@ -95,6 +119,7 @@ g_observable_collection_prepend (GObservableCollection *collection, gpointer ite
   g_return_if_fail (G_IS_OBSERVABLE_COLLECTION (collection));
 
   collection->priv->items = g_slist_prepend (collection->priv->items, item);
+  g_signal_emit (collection, signals[ITEM_ADDED], 0, item, 0);
 }
 
 /**
@@ -106,6 +131,7 @@ g_observable_collection_insert (GObservableCollection *collection, gpointer item
   g_return_if_fail (G_IS_OBSERVABLE_COLLECTION (collection));
 
   collection->priv->items = g_slist_insert (collection->priv->items, item, position);
+  g_signal_emit (collection, signals[ITEM_ADDED], 0, item, g_slist_index (collection->priv->items, item));
 }
 
 /**
@@ -117,6 +143,7 @@ g_observable_collection_insert_sorted (GObservableCollection *collection, gpoint
   g_return_if_fail (G_IS_OBSERVABLE_COLLECTION (collection));
 
   collection->priv->items = g_slist_insert_sorted (collection->priv->items, item, compare_func);
+  g_signal_emit (collection, signals[ITEM_ADDED], 0, item, g_slist_index (collection->priv->items, item));
 }
 
 /**
@@ -128,6 +155,7 @@ g_observable_collection_remove (GObservableCollection *collection, gpointer item
   g_return_if_fail (G_IS_OBSERVABLE_COLLECTION (collection));
 
   collection->priv->items = g_slist_remove (collection->priv->items, item);
+  g_signal_emit (collection, signals[ITEM_REMOVED], 0, item);
 }
 
 /**
