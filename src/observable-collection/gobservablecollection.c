@@ -27,10 +27,13 @@
  * @title: GObservableCollection
  * @short_description: Represents a collection of items that emits notifications
  * of any change to the collection.
+ *
+ * GObservableCollection is thread-safe.
  */
 
 struct _GObservableCollectionPrivate
 {
+  GMutex mutex;
   GSList *items;
 };
 
@@ -106,7 +109,10 @@ g_observable_collection_append (GObservableCollection *collection, gpointer item
 {
   g_return_if_fail (G_IS_OBSERVABLE_COLLECTION (collection));
 
+  g_mutex_lock (&collection->priv->mutex);
   collection->priv->items = g_slist_append (collection->priv->items, item);
+  g_mutex_unlock (&collection->priv->mutex);
+
   g_signal_emit (collection, signals[ITEM_ADDED], 0, item, g_slist_length (collection->priv->items) - 1);
 }
 
@@ -118,7 +124,10 @@ g_observable_collection_prepend (GObservableCollection *collection, gpointer ite
 {
   g_return_if_fail (G_IS_OBSERVABLE_COLLECTION (collection));
 
+  g_mutex_lock (&collection->priv->mutex);
   collection->priv->items = g_slist_prepend (collection->priv->items, item);
+  g_mutex_unlock (&collection->priv->mutex);
+
   g_signal_emit (collection, signals[ITEM_ADDED], 0, item, 0);
 }
 
@@ -130,7 +139,10 @@ g_observable_collection_insert (GObservableCollection *collection, gpointer item
 {
   g_return_if_fail (G_IS_OBSERVABLE_COLLECTION (collection));
 
+  g_mutex_lock (&collection->priv->mutex);
   collection->priv->items = g_slist_insert (collection->priv->items, item, position);
+  g_mutex_unlock (&collection->priv->mutex);
+
   g_signal_emit (collection, signals[ITEM_ADDED], 0, item, g_slist_index (collection->priv->items, item));
 }
 
@@ -142,7 +154,10 @@ g_observable_collection_insert_sorted (GObservableCollection *collection, gpoint
 {
   g_return_if_fail (G_IS_OBSERVABLE_COLLECTION (collection));
 
+  g_mutex_lock (&collection->priv->mutex);
   collection->priv->items = g_slist_insert_sorted (collection->priv->items, item, compare_func);
+  g_mutex_unlock (&collection->priv->mutex);
+
   g_signal_emit (collection, signals[ITEM_ADDED], 0, item, g_slist_index (collection->priv->items, item));
 }
 
@@ -154,7 +169,10 @@ g_observable_collection_remove (GObservableCollection *collection, gpointer item
 {
   g_return_if_fail (G_IS_OBSERVABLE_COLLECTION (collection));
 
+  g_mutex_lock (&collection->priv->mutex);
   collection->priv->items = g_slist_remove (collection->priv->items, item);
+  g_mutex_unlock (&collection->priv->mutex);
+
   g_signal_emit (collection, signals[ITEM_REMOVED], 0, item);
 }
 
@@ -166,7 +184,9 @@ g_observable_collection_reverse (GObservableCollection *collection)
 {
   g_return_if_fail (G_IS_OBSERVABLE_COLLECTION (collection));
 
+  g_mutex_lock (&collection->priv->mutex);
   collection->priv->items = g_slist_reverse (collection->priv->items);
+  g_mutex_unlock (&collection->priv->mutex);
 }
 
 /**
@@ -179,7 +199,10 @@ g_observable_collection_item_at (GObservableCollection *collection, gint positio
 
   g_return_val_if_fail (G_IS_OBSERVABLE_COLLECTION (collection), NULL);
 
+  g_mutex_lock (&collection->priv->mutex);
   sl = g_slist_nth (collection->priv->items, position);
+  g_mutex_unlock (&collection->priv->mutex);
+
   return sl != NULL ? sl->data : NULL;
 }
 
@@ -189,7 +212,13 @@ g_observable_collection_item_at (GObservableCollection *collection, gint positio
 gint
 g_observable_collection_index  (GObservableCollection *collection, gpointer item)
 {
+  gint index;
+
   g_return_val_if_fail (G_IS_OBSERVABLE_COLLECTION (collection), -1);
 
-  return g_slist_index (collection->priv->items, item);
+  g_mutex_lock (&collection->priv->mutex);
+  index = g_slist_index (collection->priv->items, item);
+  g_mutex_unlock (&collection->priv->mutex);
+
+  return index;
 }
