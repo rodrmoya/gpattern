@@ -17,3 +17,4 @@ po/stamp-it
 *.la
 .deps
 .libs
+src/observable-collection/testobservablecollection
