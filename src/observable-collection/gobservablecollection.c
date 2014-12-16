@@ -66,7 +66,7 @@ g_observable_collection_class_init (GObservableCollectionClass *klass)
 
   signals[ITEM_ADDED] =
     g_signal_new ("item_added",
-                  G_TYPE_OBSERVABLE_COLLECTION,
+                  G_OBJECT_CLASS_TYPE (object_class),
                   G_SIGNAL_RUN_LAST,
                   G_STRUCT_OFFSET (GObservableCollectionClass, item_added),
                   NULL, NULL, NULL,
@@ -74,7 +74,7 @@ g_observable_collection_class_init (GObservableCollectionClass *klass)
                   G_TYPE_POINTER, G_TYPE_INT);
   signals[ITEM_REMOVED] =
     g_signal_new ("item_removed",
-                  G_TYPE_OBSERVABLE_COLLECTION,
+                  G_OBJECT_CLASS_TYPE (object_class),
                   G_SIGNAL_RUN_LAST,
                   G_STRUCT_OFFSET (GObservableCollectionClass, item_removed),
                   NULL, NULL, NULL,
@@ -85,7 +85,7 @@ g_observable_collection_class_init (GObservableCollectionClass *klass)
 static void
 g_observable_collection_init (GObservableCollection *collection)
 {
-  collection->priv = g_observable_collection_get_instance_private (collection);
+  collection->priv = g_new0 (GObservableCollectionPrivate, 1);
   collection->priv->items = NULL;
 }
 
@@ -95,7 +95,7 @@ g_observable_collection_init (GObservableCollection *collection)
 GObservableCollection *
 g_observable_collection_new (void)
 {
-  return (GObservableCollection *) g_object_new (G_TYPE_OBSERVABLE_COLLECTION, NULL);
+  return g_object_new (G_TYPE_OBSERVABLE_COLLECTION, NULL);
 }
 
 /**
