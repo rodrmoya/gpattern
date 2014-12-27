@@ -12,12 +12,13 @@ static gboolean
 timeout_cb (gpointer user_data)
 {
   GMessageCenter *msg_center = G_MESSAGE_CENTER (user_data);
-  static int count = 0;
+  static int count = 1;
 
   g_message_center_send_full (msg_center, G_OBJECT (msg_center), "test.message.count", NULL);
-  if (count++ > 10)
+  if (count++ >= 10)
     {
-      g_message_center_send (msg_center, g_message_new (G_OBJECT (msg_center), "test.message.quit", NULL));
+      g_print ("Done sending messages, sending QUIT message\n");
+      g_message_center_send_with_delay (msg_center, g_message_new (G_OBJECT (msg_center), "test.message.quit", NULL), 2000);
       return FALSE;
     }
 
