@@ -20,7 +20,7 @@
  * Author: Rodrigo Moya <rodrigo@gnome.org>
  */
 
-#include "config.h"
+#include "gmessage.h"
 
 /**
  * SECTION:gmessage
@@ -32,6 +32,7 @@ struct _GMessagePrivate
 {
   GObject *sender;
   gchar   *name;
+  gpointer user_data;
 };
 
 G_DEFINE_TYPE (GMessage, g_message, G_TYPE_OBJECT);
@@ -42,7 +43,7 @@ g_message_finalize (GObject *object)
   GMessage *message = G_MESSAGE (object);
 
   if (message->priv != NULL) {
-    g_clear_object (message->priv->sender);
+    g_clear_object (&message->priv->sender);
     g_clear_pointer (&message->priv->name, g_free);
   }
 
@@ -60,19 +61,27 @@ g_message_class_init (GMessageClass *klass)
 static void
 g_message_init (GMessage *message)
 {
-  message->priv = g_message_get_instance_private (message);
+  message->priv = g_new0 (GMessagePrivate, 1);
 }
 
 /**
  * g_message_new:
  */
 GMessage *
-g_message_new (GObject *sender, const gchar *message_name)
+g_message_new (GObject *sender, const gchar *message_name, gpointer user_data)
 {
-  GMessage *message = g_object_new (G_TYPE_MESSAGE, NULL);
+  GMessage *message;
+
+  g_return_val_if_fail (G_IS_OBJECT (sender), NULL);
+  g_return_val_if_fail (message_name != NULL, NULL);
+
+  message = g_object_new (G_TYPE_MESSAGE, NULL);
 
   g_message_set_sender (message, sender);
-  g_message_set_name (message, name);
+  g_message_set_name (message, message_name);
+  g_message_set_user_data (message, user_data);
+
+  return message;
 }
 
 /**
@@ -94,7 +103,11 @@ g_message_set_sender (GMessage *message, GObject *sender)
 {
   g_return_if_fail (G_IS_MESSAGE (message));
 
-  g_clear_object (&message->priv->sender);
+  if (message->priv->sender != NULL)
+    {
+      g_object_unref (message->priv->sender);
+    }
+
   message->priv->sender = g_object_ref (sender);
 }
 

@@ -51,7 +51,7 @@ g_COLLECTION_default_init (GCollectionInterface *iface)
                 NULL, NULL, NULL,
                 G_TYPE_NONE, 1,
                 G_TYPE_OBJECT);
-  
+
   /**
    * GCollection::item_removed:
    *

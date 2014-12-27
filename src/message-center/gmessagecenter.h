@@ -38,6 +38,8 @@ typedef struct _GMessageCenter        GMessageCenter;
 typedef struct _GMessageCenterClass   GMessageCenterClass;
 typedef struct _GMessageCenterPrivate GMessageCenterPrivate;
 
+typedef void (* GMessageCenterFilterFunc) (GMessageCenter *message_center, GMessage *message, gpointer user_data);
+
 /**
  * GMessageCenter;
  *
@@ -60,10 +62,25 @@ struct _GMessageCenterClass
   void (* message_received) (GMessageCenter message_center, GMessage *message);
 };
 
-GType           g_message_center_get_type (void) G_GNUC_CONST;
+GType           g_message_center_get_type             (void) G_GNUC_CONST;
 
-GMessageCenter *g_message_center_get      (void);
-void            g_message_center_send     (GMessageCenter *message_center, GMessage *message);
+GMessageCenter *g_message_center_get                  (void);
+void            g_message_center_send                 (GMessageCenter *message_center, GMessage *message);
+void            g_message_center_send_with_delay      (GMessageCenter *message_center, GMessage *message, guint delay);
+void            g_message_center_send_full            (GMessageCenter *message_center,
+                                                       GObject *sender,
+                                                       const gchar *message_name,
+                                                       gpointer user_data);
+void            g_message_center_send_full_with_delay (GMessageCenter *message_center,
+                                                       GObject *sender,
+                                                       const gchar *message_name,
+                                                       gpointer user_data,
+                                                       guint delay);
+void            g_message_center_filter               (GMessageCenter *message_center,
+                                                       GObject *sender,
+                                                       const gchar *message_name,
+                                                       GMessageCenterFilterFunc callback,
+                                                       gpointer user_data);
 
 G_END_DECLS
 

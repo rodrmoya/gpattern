@@ -27,7 +27,7 @@
 
 G_BEGIN_DECLS
 
-#define G_TYPE_MESSAGE         (g_MESSAGE_get_type ())
+#define G_TYPE_MESSAGE         (g_message_get_type ())
 #define G_MESSAGE(o)           (G_TYPE_CHECK_INSTANCE_CAST ((o), G_TYPE_MESSAGE, GMessage))
 #define G_MESSAGE_CLASS(k)     (G_TYPE_CHECK_CLASS_CAST((k), G_TYPE_MESSAGE, GMessageClass))
 #define G_IS_MESSAGE(o)        (G_TYPE_CHECK_INSTANCE_TYPE ((o), G_TYPE_MESSAGE))
@@ -41,6 +41,9 @@ typedef struct _GMessagePrivate GMessagePrivate;
 struct _GMessage
 {
   GObject parent;
+
+  /*< private >*/
+  GMessagePrivate *priv;
 };
 
 struct _GMessageClass
@@ -50,12 +53,12 @@ struct _GMessageClass
 
 GType        g_message_get_type      (void) G_GNUC_CONST;
 
-GMessage    *g_message_new           (GObject sender, const gchar *message_name, gpointer user_data);
+GMessage    *g_message_new           (GObject *sender, const gchar *message_name, gpointer user_data);
 
 GObject     *g_message_get_sender    (GMessage *message);
 void         g_message_set_sender    (GMessage *message, GObject *sender);
 const gchar *g_message_get_name      (GMessage *message);
-void         g_message_set_name      (GMessage *message);
+void         g_message_set_name      (GMessage *message, const gchar *name);
 gpointer     g_message_get_user_data (GMessage *message);
 void         g_message_set_user_data (GMessage *message, gpointer user_data);
 

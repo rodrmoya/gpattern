@@ -20,7 +20,7 @@
  * Author: Rodrigo Moya <rodrigo@gnome.org>
  */
 
-#include "config.h"
+#include "gmessagecenter.h"
 
 /**
  * SECTION:gmessagecenter
@@ -28,8 +28,17 @@
  * @short_description: Application-wide message passing interface
  */
 
+typedef struct
+{
+  GObject *sender;
+  gchar *message_name;
+  GMessageCenterFilterFunc callback;
+  gpointer user_data;
+} RegisteredCallback;
+
 struct _GMessageCenterPrivate
 {
+  GSList *registered_callbacks;
 };
 
 enum {
@@ -46,6 +55,18 @@ g_message_center_finalize (GObject *object)
   GMessageCenter *message_center = G_MESSAGE_CENTER (object);
 
   if (message_center->priv != NULL) {
+    while (message_center->priv->registered_callbacks != NULL)
+      {
+        RegisteredCallback *rc = message_center->priv->registered_callbacks->data;
+        message_center->priv->registered_callbacks = g_slist_remove (message_center->priv->registered_callbacks, rc);
+
+        if (rc->sender != NULL)
+          {
+            g_object_unref (rc->sender);
+          }
+        g_free (rc->message_name);
+        g_free (rc);
+      }
   }
 
   G_OBJECT_CLASS (g_message_center_parent_class)->finalize (object);
@@ -96,8 +117,134 @@ g_message_center_get (void)
 void
 g_message_center_send (GMessageCenter *message_center, GMessage *message)
 {
-  g_return_if_fail (G_IS_MESSAGE_CENTER (message_center));
-  g_return_if_fail (message_name != NULL);
+  GSList *l;
 
+  g_return_if_fail (G_IS_MESSAGE_CENTER (message_center));
+  g_return_if_fail (G_IS_MESSAGE (message));
+
+  /* 1st, notify all listeners */
   g_signal_emit_by_name (message_center, "message-received", message);
+
+  /* 2nd, notify registered filters */
+  for (l = message_center->priv->registered_callbacks; l != NULL; l = l->next)
+    {
+      RegisteredCallback *rc = l->data;
+
+      if ((rc->sender == NULL || rc->sender == g_message_get_sender (message)) &&
+          !g_strcmp0 (rc->message_name, g_message_get_name (message)))
+        {
+          rc->callback (message_center, message, rc->user_data);
+        }
+    }
+}
+
+typedef struct
+{
+  GMessageCenter *message_center;
+  GMessage *message;
+} DelayedMessage;
+
+static gboolean
+delayed_send_message_cb (gpointer user_data)
+{
+  DelayedMessage *dm = (DelayedMessage *) user_data;
+
+  g_message_center_send (dm->message_center, dm->message);
+
+  g_object_unref (dm->message_center);
+  if (dm->message != NULL)
+    {
+      g_object_unref (dm->message);
+    }
+  g_free (dm);
+
+  return FALSE;
+}
+
+/**
+ * g_message_center_send_with_delay:
+ */
+void
+g_message_center_send_with_delay (GMessageCenter *message_center, GMessage *message, guint delay)
+{
+  g_return_if_fail (G_IS_MESSAGE_CENTER (message_center));
+  g_return_if_fail (G_IS_MESSAGE (message));
+
+  if (delay == 0)
+    {
+      g_message_center_send (message_center, message);
+    }
+  else
+    {
+      DelayedMessage *dm = g_new0 (DelayedMessage, 1);
+      dm->message_center = g_object_ref (message_center);
+      dm->message = g_object_ref (message);
+
+      g_timeout_add (delay, delayed_send_message_cb, dm);
+    }
+}
+
+/**
+ * g_message_center_send_full:
+ */
+void
+g_message_center_send_full (GMessageCenter *message_center, GObject *sender, const gchar *message_name, gpointer user_data)
+{
+  GMessage *msg;
+
+  g_return_if_fail (G_IS_MESSAGE_CENTER (message_center));
+
+  msg = g_message_new (sender, message_name, user_data);
+  if (msg != NULL)
+    {
+      g_message_center_send (message_center, msg);
+      g_object_unref (msg);
+    }
+}
+
+/**
+ * g_message_center_send_full_with_delay:
+ */
+void
+g_message_center_send_full_with_delay (GMessageCenter *message_center,
+                                       GObject *sender,
+                                       const gchar *message_name,
+                                       gpointer user_data,
+                                       guint delay)
+{
+  GMessage *msg;
+
+  g_return_if_fail (G_IS_MESSAGE_CENTER (message_center));
+
+  msg = g_message_new (sender, message_name, user_data);
+  if (msg != NULL)
+    {
+      g_message_center_send_with_delay (message_center, msg, delay);
+      g_object_unref (msg);
+    }
+}
+
+/**
+ * g_message_center_filter:
+ */
+void
+g_message_center_filter (GMessageCenter *message_center,
+                         GObject *sender,
+                         const gchar *message_name,
+                         GMessageCenterFilterFunc callback,
+                         gpointer user_data)
+{
+  RegisteredCallback *rc;
+
+  g_return_if_fail (G_IS_MESSAGE_CENTER (message_center));
+  g_return_if_fail (G_IS_OBJECT (sender) || message_name != NULL);
+  g_return_if_fail (callback != NULL);
+
+  rc = g_new0 (RegisteredCallback, 1);
+  rc->sender = G_IS_OBJECT (sender) ? g_object_ref (sender) : NULL;
+  rc->message_name = g_strdup (message_name);
+  rc->callback = callback;
+  rc->user_data = user_data;
+
+  message_center->priv->registered_callbacks = g_slist_append (message_center->priv->registered_callbacks, rc);
 }
